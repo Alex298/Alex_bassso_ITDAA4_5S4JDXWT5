@@ -1,14 +1,29 @@
 import streamlit as st
 import numpy as np
+import os
 import joblib
 
+# Check if the model file exists
+model_path = 'best_model.joblib'
+if not os.path.exists(model_path):
+    st.error(f"Model file '{model_path}' not found. Please ensure the file is in the correct directory.")
+    st.stop()
+
 # Load the saved model
-model = joblib.load('best_model.joblib')
+try:
+    model = joblib.load(model_path)
+except Exception as e:
+    st.error(f"Failed to load model. Please ensure the file '{model_path}' is present and valid. Error: {e}")
+    st.stop()
 
 # Define a function to make predictions
 def predict_heart_disease(input_data):
-    prediction = model.predict([input_data])
-    return prediction[0]
+    try:
+        prediction = model.predict([input_data])
+        return prediction[0]
+    except Exception as e:
+        st.error(f"Failed to make prediction. Error: {e}")
+        return None
 
 # Streamlit application
 st.markdown(
@@ -70,14 +85,12 @@ input_data = [age, 1 if sex == "Male" else 0, cp, trestbps, chol, fbs, restecg, 
 
 # Predict heart disease based on user input
 if st.button("Predict"):
-    try:
-        prediction = predict_heart_disease(input_data)
+    prediction = predict_heart_disease(input_data)
+    if prediction is not None:
         if prediction == 1:
             st.success("The patient is likely to have heart disease. Further tests are recommended.")
         else:
             st.success("The patient is unlikely to have heart disease.")
-    except Exception as e:
-        st.error(f"An error occurred: {e}")
 
 # Add some documentation
 st.sidebar.title("Documentation")
@@ -89,7 +102,7 @@ Fill in the patient details in the form provided and click 'Predict' to see the 
 # Add the footer
 st.markdown(
     """
-    <div style='text-align: center; padding: 20px; color: #FFFFFF;'>
+    <div style='text-align: center; padding: 20px; color: #800080;'>
         <strong>Alex Basson 5S4JDXWT5</strong>
     </div>
     """,
